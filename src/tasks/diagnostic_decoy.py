@@ -12,7 +12,7 @@ Cognitive Science Basis: Stroop Test (Stroop, 1935)
 The model must suppress a dominant, automatic pattern-matching response
 triggered by surface features and instead engage controlled processing.
 
-Domains: Healthcare (clinical diagnosis) + Finance (investment analysis)
+Domains: Cybersecurity (incident analysis) + Finance (investment analysis)
 """
 
 import json
@@ -28,7 +28,7 @@ class TrialType(str, Enum):
 
 
 class Domain(str, Enum):
-    HEALTHCARE = "healthcare"
+    CYBERSECURITY = "cybersecurity"
     FINANCE = "finance"
 
 
@@ -89,180 +89,268 @@ Provide your response in the following JSON format:
 
 
 # =============================================================================
-# Healthcare Vignettes
+# Cybersecurity Vignettes
 # =============================================================================
 
-HEALTHCARE_VIGNETTES: List[DiagnosticDecoyVignette] = [
+CYBERSECURITY_VIGNETTES: List[DiagnosticDecoyVignette] = [
     # --- INCONGRUENT: Surface pattern suggests wrong answer ---
 
     DiagnosticDecoyVignette(
-        id="hc_incong_001",
-        domain=Domain.HEALTHCARE,
+        id="cyber_incong_001",
+        domain=Domain.CYBERSECURITY,
         trial_type=TrialType.INCONGRUENT,
-        title="The Capsaicin STEMI Mimic",
-        case_presentation="""A 52-year-old male presents to the emergency department with acute substernal chest pain radiating to the left arm, accompanied by diaphoresis and nausea. He rates the pain as 8/10.
+        title="The Ransomware That Wasn't",
+        case_presentation="""The SOC receives a Priority 1 alert at 02:17 UTC from the EDR platform on a file server (FS-PROD-04) in the corporate data center.
 
-Vital signs: HR 92, BP 148/88, RR 20, SpO2 97%.
+ALERT SUMMARY:
+- Detection: "Ransomware behavior detected — rapid file enumeration and modification across multiple directories"
+- Process: svchost.exe spawned cmd.exe which launched a PowerShell process
+- Behavior observed: 2,847 files modified across 14 directories in 90 seconds
+- File extensions changed: .docx → .docx.locked, .xlsx → .xlsx.locked, .pdf → .pdf.locked
+- A file named "README_RESTORE.txt" was created in each affected directory
+- Network: Outbound connection to 185.220.101[.]34 (Tor exit node) on port 443 detected 12 minutes before file activity began
+- The PowerShell process executed an encoded command (Base64)
+- Windows Event Log shows Event ID 4625 (failed logon) — 847 attempts against the Administrator account from internal IP 10.0.4.22 over the past 6 hours
 
-ECG shows ST-segment elevation in leads II, III, and aVF with reciprocal changes in leads I and aVL. The ST elevation measures 0.5mm in lead II (just meeting STEMI criteria).
+BURIED DETAILS (from the full investigation log):
 
-Initial troponin-I: 0.04 ng/mL (reference range: <0.04 ng/mL — at the very upper limit of normal, not clearly elevated).
+The EDR agent on FS-PROD-04 was updated 3 hours ago to version 7.4.2. The release notes for this version (posted on the vendor's community forum at 23:00 UTC) document a known bug: "False positive — the v7.4.2 sensor incorrectly classifies the Windows Search Indexer rebuild process as ransomware behavior when the indexer processes files in batch mode after a sensor update. The indexer's temporary file locking mechanism (.locked extension) and index summary files are misidentified. Hotfix 7.4.2.1 is in validation."
 
-Past medical history: Chronic lower back pain, GERD, hypertension.
+The decoded Base64 PowerShell command is: "Get-WindowsUpdate -Install -AcceptAll -AutoReboot" — this is the Windows Update module installing patches, which triggered the SearchIndexer rebuild.
 
-Current medications: Lisinopril 10mg daily, omeprazole 20mg daily.
+The Tor exit node connection (185.220.101[.]34) resolves to the company's own external vulnerability scanner (Qualys appliance) whose egress IP rotates through Tor for anonymous external scanning, per the security team's documented architecture. This was a scheduled quarterly scan.
 
-Nursing notes document that the patient applied a high-strength capsaicin pain patch (8% Qutenza) to his anterior chest wall approximately 2 hours ago for musculoskeletal chest wall pain that has been ongoing for 3 weeks. He reports the acute pain episode started roughly 30 minutes after applying the patch. The burning quality of the pain is noted to be "similar to his usual chest wall pain but more intense."
-
-His previous ECG from a routine visit 3 months ago showed baseline ST changes with 0.3mm elevation in the inferior leads, noted as "early repolarization pattern — normal variant." """,
-        surface_pattern_label="ST-Elevation Myocardial Infarction (STEMI)",
-        correct_answer="This is likely NOT a STEMI. The presentation is better explained by capsaicin-induced chest pain mimicking cardiac symptoms. Serial troponins, pain reassessment after patch removal, and comparison with prior ECG should be performed before cath lab activation.",
-        correct_reasoning="Multiple factors argue against true STEMI: (1) The capsaicin patch was applied 2 hours before onset — known to cause severe burning chest pain that can mimic cardiac pain. (2) Troponin is at the very upper limit of normal, not clearly elevated as expected in true STEMI. (3) The ST elevation is only 0.5mm, barely meeting criteria. (4) Prior ECG showed baseline 0.3mm inferior ST elevation (early repolarization), meaning the incremental change is only 0.2mm. (5) The patient has a history of chest wall pain. The appropriate next step is: remove capsaicin patch, reassess pain in 30 minutes, obtain serial troponins at 3 and 6 hours, and compare current ECG to prior baseline.",
+The 847 failed logon attempts from 10.0.4.22 correspond to the IT asset management tool (Lansweeper) performing its nightly credential-based inventory scan using an expired service account password, which the IT team submitted a ticket about 3 days ago (ITSM-4892, status: "pending password reset").""",
+        surface_pattern_label="Active ransomware attack — immediate containment and IR required",
+        correct_answer="This is a FALSE POSITIVE triggered by a known EDR bug (v7.4.2 SearchIndexer misclassification). No ransomware is present. The file modifications are the Windows Search Indexer rebuilding after the sensor update. The Tor connection is the company's own Qualys scanner. The brute-force attempts are the Lansweeper tool with an expired credential. Appropriate action: verify the EDR bug advisory, confirm SearchIndexer is the source process, reset the Lansweeper service account password, and schedule the EDR hotfix deployment. Do NOT isolate the production file server, which would cause a business outage.",
+        correct_reasoning="Multiple indicators that scream 'ransomware' each have benign explanations: (1) The file modification pattern and .locked extensions match a documented EDR false positive in the exact version deployed 3 hours ago. (2) The PowerShell command is Windows Update, not a ransomware payload. (3) The Tor exit node is the company's own vulnerability scanner per documented architecture. (4) The brute-force attempts are a known IT issue with an open ticket. Each 'indicator of compromise' maps to a known, documented benign activity. Isolating a production file server based on a false positive would cause significant business disruption.",
         contradictory_evidence=[
-            "Capsaicin patch applied to chest 2 hours before symptom onset",
-            "Troponin at upper limit of normal (0.04), not clearly elevated",
-            "ST elevation only 0.5mm (minimally meeting criteria)",
-            "Prior ECG showed 0.3mm baseline ST elevation (early repolarization)",
-            "History of chronic chest wall pain",
-            "Pain described as 'similar to usual chest wall pain but more intense'",
+            "EDR v7.4.2 deployed 3 hours ago has a documented false positive bug for SearchIndexer rebuild behavior",
+            "Decoded PowerShell command is Windows Update (Get-WindowsUpdate), not a ransomware payload",
+            "Tor exit node IP belongs to the company's own Qualys vulnerability scanner per documented architecture",
+            "Failed logon attempts match Lansweeper asset management tool with expired service account (open ticket ITSM-4892)",
+            "File modification timing aligns with post-sensor-update SearchIndexer rebuild, not encryption",
         ],
         decoy_strength=DecoyStrength.HIGH,
         contradiction_salience=ContradictionSalience.BURIED,
-        question="What is the most appropriate next step in management?",
+        question="Based on this alert, what is your incident assessment and recommended immediate action?",
         difficulty=4,
     ),
 
     DiagnosticDecoyVignette(
-        id="hc_incong_002",
-        domain=Domain.HEALTHCARE,
+        id="cyber_incong_002",
+        domain=Domain.CYBERSECURITY,
         trial_type=TrialType.INCONGRUENT,
-        title="The Thyroid Storm That Isn't",
-        case_presentation="""A 34-year-old female presents to the ED with palpitations, tremor, anxiety, weight loss of 8 lbs over 2 weeks, and heat intolerance. She appears agitated and diaphoretic.
+        title="The Clean Bill of Health",
+        case_presentation="""A quarterly security review is conducted on the corporate web application gateway (WAG-01) serving the company's customer-facing SaaS platform. The system administrator reports "all clear — no incidents this quarter."
 
-Vital signs: HR 128, BP 162/78 (wide pulse pressure), Temperature 38.4°C (101.1°F), RR 22.
+SURFACE-LEVEL REVIEW:
+- WAF (Web Application Firewall) logs: 0 blocked attacks in the past 90 days
+- IDS/IPS alerts: 0 high or critical alerts
+- Antivirus: All scans clean, definitions current (updated daily)
+- Vulnerability scan (Nessus): 0 critical, 2 medium (both patched within SLA), 8 low
+- Uptime: 99.97% — only planned maintenance windows
+- SSL/TLS: A+ rating on SSL Labs, TLS 1.3 only, HSTS enabled
+- Access logs: Normal traffic patterns, no anomalous spikes
+- Patch compliance: 100% — all CVEs patched within 72-hour SLA
+- Last penetration test (6 weeks ago): "No critical or high findings"
 
-Physical exam: Fine tremor of outstretched hands, lid lag present, warm moist skin, hyperreflexia in all extremities. Thyroid is diffusely enlarged and non-tender.
+BURIED IN THE DATA:
 
-Labs: TSH < 0.01 mIU/L (very suppressed), Free T4 5.8 ng/dL (normal 0.8-1.8), Free T3 12.4 pg/mL (normal 2.3-4.2).
+DNS query logs from the internal recursive resolver show that WAG-01 has been making DNS TXT record queries to a domain "update-check.systemctl[.]services" at precise 3-hour intervals (08:00, 11:00, 14:00, 17:00, 20:00, 23:00, 02:00, 05:00 UTC) for the past 67 days. The domain was registered 71 days ago through Namecheap with WHOIS privacy. The TXT records returned are Base32-encoded strings averaging 180 characters. The queries bypass the company's DNS filtering because they go to an internal resolver that forwards to 8.8.8.8 rather than the corporate DNS security gateway.
 
-The Burch-Wartofsky score calculates to 50 (suggestive of thyroid storm).
+Netflow data shows WAG-01 sending small HTTPS POST requests (avg 2.3KB) to a Cloudflare Workers endpoint at worker-api.example-cdn[.]workers.dev every 3 hours, offset by 15 minutes from the DNS queries. The Cloudflare Workers domain was also registered 71 days ago. The certificate is valid (issued by Cloudflare), and the traffic is TLS 1.3 encrypted, making content inspection impossible.
 
-The patient's medication list from her pharmacy records shows she was prescribed levothyroxine 300 mcg daily (an unusually high dose) by an online telehealth provider 3 weeks ago. Her prior medical records show a TSH of 3.2 mIU/L (normal) from 6 weeks ago. She mentions she "wanted to lose weight faster" and found a telehealth service that prescribed thyroid hormone. She has no prior history of thyroid disease.
+The WAF and IDS show zero alerts because the command-and-control traffic uses legitimate DNS and HTTPS protocols to legitimate infrastructure (Google DNS, Cloudflare). No signatures fire because there are no malicious payloads in transit — only encoded commands inbound via DNS TXT and small encrypted exfiltration outbound via HTTPS.
 
-Additionally, her urine drug screen is positive for amphetamines. She admits to using Adderall obtained from a friend "to help with energy" for the past week.""",
-        surface_pattern_label="Thyroid Storm (Graves' Disease)",
-        correct_answer="This is exogenous thyrotoxicosis (iatrogenic/factitious) from inappropriate levothyroxine supplementation, compounded by amphetamine use — NOT primary thyroid storm from Graves' disease. Treatment differs significantly: stop levothyroxine, supportive care, beta-blockade for symptom control, and substance use counseling. Thionamides (PTU/methimazole) are NOT indicated as there is no endogenous thyroid hormone overproduction.",
-        correct_reasoning="Key distinguishing factors: (1) Normal TSH 6 weeks ago rules out pre-existing Graves'. (2) She started high-dose levothyroxine 3 weeks ago — the timeline matches symptom onset. (3) 300mcg levothyroxine is a supratherapeutic dose even for thyroid cancer suppression. (4) Amphetamine use explains additional sympathomimetic symptoms. (5) While the Burch-Wartofsky score is elevated, this scoring system does not differentiate between endogenous and exogenous thyrotoxicosis. Treatment for exogenous thyrotoxicosis is fundamentally different — thionamides won't help because the thyroid gland itself isn't overproducing.",
+A file integrity monitoring (FIM) exception was added 68 days ago for the directory /opt/wag/plugins/analytics/ by a systems administrator account. The exception note reads "excluding analytics plugin directory from FIM to reduce noise from frequent telemetry updates." The account that added the exception logged in via SSH from a VPN IP that does not match any employee's assigned VPN profile in the IAM system.""",
+        surface_pattern_label="Clean security posture — no action required",
+        correct_answer="This system is ACTIVELY COMPROMISED with a sophisticated command-and-control (C2) implant that has been operating undetected for approximately 67-71 days. This is an Advanced Persistent Threat (APT) pattern. Immediate actions: (1) Do NOT alert the attacker by making changes to WAG-01 — engage incident response covertly; (2) Capture forensic images of WAG-01 before any remediation; (3) Analyze the DNS TXT queries and HTTPS POST payloads; (4) Investigate who added the FIM exception and from which VPN IP; (5) Determine the scope of data exfiltration via the Cloudflare Workers endpoint; (6) Check all other systems for similar DNS beacon patterns.",
+        correct_reasoning="Every surface-level security control reports clean, but the threat has been designed to evade them: (1) DNS TXT queries at precise intervals to a recently-registered domain are a classic DNS-based C2 beacon pattern — the Base32-encoded TXT records are commands from the attacker. (2) Periodic small HTTPS POSTs to a new Cloudflare Workers endpoint are data exfiltration — small payloads avoid volumetric detection, and Cloudflare's legitimate certificate defeats TLS inspection. (3) The timing correlation (3-hour intervals, 15-minute offset) between DNS queries and HTTPS POSTs confirms a command-then-exfiltrate cycle. (4) The FIM exception was added 68 days ago (just after the C2 began 67 days ago) to hide modifications to the implant directory. (5) The SSH login from an unrecognized VPN IP to add that exception indicates the attacker already had credentials. (6) WAF/IDS/AV show nothing because the C2 uses legitimate protocols to legitimate infrastructure — there are no signatures to match. This is textbook APT behavior: living off the land with protocol-level evasion.",
         contradictory_evidence=[
-            "Normal TSH (3.2) just 6 weeks ago — no prior thyroid disease",
-            "Started high-dose levothyroxine (300mcg) from telehealth 3 weeks ago",
-            "Motivated by weight loss, not medical indication",
-            "Positive urine drug screen for amphetamines",
-            "Adderall use for past week contributes to sympathomimetic presentation",
+            "DNS TXT queries to recently-registered domain at precise 3-hour intervals for 67 days (C2 beacon pattern)",
+            "Base32-encoded TXT records averaging 180 characters (encoded C2 commands)",
+            "Periodic small HTTPS POSTs to new Cloudflare Workers endpoint (data exfiltration channel)",
+            "FIM exception added 68 days ago from unrecognized VPN IP (attacker hiding implant modifications)",
+            "DNS queries bypass corporate DNS security by using internal resolver forwarding to 8.8.8.8",
+            "Both suspicious domains registered 71 days ago, correlating with compromise timeline",
         ],
         decoy_strength=DecoyStrength.HIGH,
-        contradiction_salience=ContradictionSalience.MODERATE,
-        question="What is the most likely diagnosis and appropriate management?",
-        difficulty=4,
+        contradiction_salience=ContradictionSalience.BURIED,
+        question="Based on this quarterly security review, what is your assessment of WAG-01's security posture and any recommended actions?",
+        difficulty=5,
     ),
 
     DiagnosticDecoyVignette(
-        id="hc_incong_003",
-        domain=Domain.HEALTHCARE,
+        id="cyber_incong_003",
+        domain=Domain.CYBERSECURITY,
         trial_type=TrialType.INCONGRUENT,
-        title="The Appendicitis Confounder",
-        case_presentation="""A 28-year-old male presents with 18 hours of abdominal pain that started periumbilically and migrated to the right lower quadrant. He has nausea, one episode of vomiting, and anorexia.
+        title="The Insider Threat Alert",
+        case_presentation="""The Data Loss Prevention (DLP) system generates a high-severity alert for a senior software engineer, Maria Chen (Employee ID: E-4471), in the platform engineering team.
 
-Vital signs: HR 88, BP 130/82, Temperature 37.9°C (100.2°F).
+DLP ALERT DETAILS:
+- Activity: 3.2 GB of source code files (.py, .go, .yaml, .tf) uploaded to a personal Google Drive account over the past 48 hours
+- Pattern: Uploads occurred between 22:00-01:00 local time (outside business hours)
+- Files include: core microservices source code, Terraform infrastructure configs, Kubernetes deployment manifests, and internal API documentation
+- The personal Google Drive account (maria.chen.personal@gmail.com) is not an approved corporate storage destination
+- Maria submitted her two-week resignation notice 5 days ago
+- Her manager flagged in the HR system that Maria is "joining a direct competitor" (confirmed via LinkedIn update)
+- Badge access logs show Maria entering the office at 21:45 on both nights (outside her normal 09:00-18:00 schedule)
+- USB device connection detected on her workstation (SanDisk Ultra 128GB) during the same windows
 
-Physical exam: RLQ tenderness with guarding, positive McBurney's point tenderness, positive Rovsing's sign, positive psoas sign.
+ADDITIONAL CONTEXT (from IT and HR records):
 
-Labs: WBC 13,200 with 82% neutrophils (left shift). CRP 4.2 mg/dL (elevated).
+Maria's resignation notice includes that her last day is in 9 days. Per company policy, her access to production systems was immediately reduced to read-only upon resignation submission.
 
-Alvarado Score: 9/10 (highly suggestive of acute appendicitis).
+IT records show that Maria filed a ticket (ITSM-7234) 6 days ago (one day before her resignation) requesting access to download her personal development environment configs, IDE settings, dotfiles, and personal side-project code that she had stored in her home directory on the corporate workstation. The ticket was approved by her manager with the note: "Approved — Maria has personal projects in ~/personal/ that predate her employment. She brought her own configs when she onboarded 4 years ago." HR confirmed this arrangement existed since her hire date.
 
-The surgical team is consulted and recommends proceeding to the OR.
+A review of the actual files uploaded shows that 2.8 GB of the 3.2 GB transfer consists of files from ~/personal/ directory — containing her personal Kubernetes learning projects, contributed open-source code (all publicly available on her GitHub), her dotfiles/IDE configs, and blog post drafts. The remaining 0.4 GB was uploaded from ~/work/docs/ and contains the company's internal API documentation and two Terraform modules for the authentication service.
 
-CT abdomen/pelvis (obtained per ED protocol before surgical consult arrived): The appendix appears normal in caliber (5mm) without wall thickening, periappendiceal fat stranding, or appendicolith. However, the CT incidentally shows a 3cm right-sided mesenteric lymph node conglomerate with surrounding fat stranding centered in the right iliac fossa. There is also mild terminal ileum wall thickening (4mm).
-
-Further history obtained while awaiting OR: The patient mentions he returned from a camping trip in upstate New York 10 days ago where he drank from a stream. He has had watery diarrhea for 3 days that he "didn't think was related" and didn't initially mention.""",
-        surface_pattern_label="Acute Appendicitis",
-        correct_answer="This is mesenteric lymphadenitis, most likely from Yersinia enterocolitica infection (pseudoappendicitis syndrome), NOT acute appendicitis. The CT shows a normal appendix. Appropriate management: hold surgery, stool cultures, blood cultures, supportive care, and antibiotics if Yersinia confirmed.",
-        correct_reasoning="Despite a classic appendicitis presentation and high Alvarado score: (1) CT shows a NORMAL appendix — this is the most important finding. (2) Mesenteric lymphadenopathy with terminal ileum thickening is classic for Yersinia pseudoappendicitis. (3) Camping trip with stream water exposure 10 days ago is the epidemiological link. (4) The watery diarrhea (which the patient didn't mention initially) supports enteric infection. (5) Yersinia enterocolitica is notorious for mimicking appendicitis — 'pseudoappendicitis syndrome' — with RLQ pain, fever, leukocytosis, and even positive peritoneal signs. Unnecessary appendectomy would expose the patient to surgical risk for a medical condition.",
+Maria's after-hours badge access corresponds to the only times the office's gigabit ethernet is available without bandwidth contention — she noted in the IT ticket that her home internet is "too slow for a 3 GB upload" and asked if she could use the office network. The USB drive was used to back up her personal files locally before the cloud upload (standard practice she confirmed in the ticket).""",
+        surface_pattern_label="Active data exfiltration by departing employee — block access and investigate",
+        correct_answer="This is PARTIALLY a legitimate approved activity and PARTIALLY a genuine concern. The bulk transfer (2.8 GB / 87.5%) is authorized personal data retrieval per the approved IT ticket and manager sign-off. However, the 0.4 GB of company API documentation and authentication Terraform modules from ~/work/docs/ IS unauthorized exfiltration of proprietary material and must be addressed. Recommended action: (1) Do not escalate as a full insider threat — the majority of activity is approved; (2) Contact Maria about the 0.4 GB of work files — this may be accidental inclusion or intentional; (3) Request deletion of the work files from her personal Google Drive and verify; (4) Preserve logs for documentation; (5) Remind departing employees about IP obligations. Do NOT lock her account or call law enforcement based on this evidence.",
+        correct_reasoning="The DLP alert looks alarming on the surface — departing employee, competitor move, after-hours access, large transfer to personal storage. But most of the context resolves the concern: (1) An approved IT ticket (filed before resignation) covers the personal data transfer. (2) Manager explicitly approved the personal file retrieval. (3) The after-hours access has a practical explanation (bandwidth). (4) 87.5% of transferred data is verified personal. However, the remaining 0.4 GB of work files IS a genuine issue that needs addressing — the correct response is proportionate, not the full insider threat response the surface pattern suggests.",
         contradictory_evidence=[
-            "CT shows normal appendix (5mm, no inflammation)",
-            "3cm mesenteric lymph node conglomerate on CT",
-            "Terminal ileum wall thickening (4mm)",
-            "Camping trip 10 days ago with stream water exposure",
-            "3 days of watery diarrhea (initially unreported)",
+            "Approved IT ticket (ITSM-7234) filed before resignation for personal file retrieval",
+            "Manager explicitly approved personal file download with documented note",
+            "2.8 GB of 3.2 GB (87.5%) verified as personal files predating employment",
+            "After-hours access explained by bandwidth needs documented in IT ticket",
+            "But 0.4 GB of work files (API docs, auth Terraform modules) IS unauthorized",
         ],
         decoy_strength=DecoyStrength.HIGH,
         contradiction_salience=ContradictionSalience.MODERATE,
-        question="Given the CT findings and additional history, should the patient proceed to surgery? What is the most likely diagnosis?",
+        question="How should the security team respond to this DLP alert? What is your threat assessment and recommended action?",
         difficulty=3,
+    ),
+
+    DiagnosticDecoyVignette(
+        id="cyber_incong_004",
+        domain=Domain.CYBERSECURITY,
+        trial_type=TrialType.INCONGRUENT,
+        title="The Critical Zero-Day",
+        case_presentation="""A vulnerability intelligence feed delivers an urgent advisory at 06:00 UTC Monday morning:
+
+ADVISORY: CVE-2026-31337 — Critical Remote Code Execution in Apache HTTP Server
+- CVSS Base Score: 9.8 (Critical)
+- Attack Vector: Network / No Authentication Required / No User Interaction
+- Affected Versions: Apache HTTP Server 2.4.58 through 2.4.62
+- Description: "A heap-based buffer overflow in mod_rewrite allows unauthenticated remote attackers to execute arbitrary code by sending a specially crafted URL with nested regex backreferences exceeding the internal buffer. Exploitation is trivial and proof-of-concept code is publicly available."
+- Vendor Status: "Patch available — upgrade to Apache 2.4.63"
+- CISA KEV: Added to Known Exploited Vulnerabilities catalog
+- Threat Intelligence: "Active exploitation observed in the wild by multiple threat actors targeting financial services and government sectors"
+
+YOUR ENVIRONMENT:
+- 47 internet-facing Apache HTTP Server instances across 3 data centers
+- All running Apache 2.4.61 (within the affected range)
+- These servers front the company's primary revenue-generating e-commerce platform
+- Change Advisory Board (CAB) next meets Thursday — emergency changes require VP approval
+- The last emergency patch (3 months ago) caused a 4-hour outage due to configuration incompatibility
+
+BURIED DETAILS:
+
+Upon deeper investigation, all 47 Apache instances have the following configuration:
+- mod_rewrite is DISABLED in the httpd.conf (the servers use mod_proxy for reverse proxy routing, not URL rewriting)
+- All 47 servers sit behind AWS Application Load Balancers (ALB) with AWS WAF rules that include the OWASP Core Rule Set, which blocks malformed URLs with nested regex patterns
+- The Apache instances are containerized (running in ECS Fargate) with read-only root filesystems and no outbound internet access (egress restricted to internal VPC endpoints only)
+- The Apache user runs as UID 65534 (nobody) with Linux capabilities dropped (no CAP_NET_RAW, no CAP_SYS_ADMIN) and seccomp profile enforced
+
+The CVE advisory's "affected versions" list includes 2.4.58-2.4.62, but the National Vulnerability Database's detailed analysis notes: "This vulnerability is only exploitable when mod_rewrite is loaded AND RewriteRule directives with regex backreferences are actively processing requests. Installations not using mod_rewrite are NOT affected." This clarification was added to the NVD page 2 hours after the initial advisory.""",
+        surface_pattern_label="Critical zero-day requiring emergency patching — escalate immediately",
+        correct_answer="While the CVE is genuinely critical for affected configurations, YOUR ENVIRONMENT IS NOT EXPLOITABLE due to multiple layers of defense-in-depth: (1) mod_rewrite is disabled — the vulnerable component is not loaded; (2) AWS WAF blocks the attack vector; (3) container hardening limits post-exploitation impact even if somehow exploited; (4) no egress connectivity prevents C2 communication. Recommended action: Patch through the normal Thursday CAB cycle (not emergency). Add the CVE to the risk register as 'mitigated by configuration.' Validate mod_rewrite remains disabled across all instances. Do NOT trigger an emergency change that risks a repeat of the previous 4-hour outage for a vulnerability that cannot be exploited in your environment.",
+        correct_reasoning="The CVSS 9.8 score and CISA KEV listing create extreme urgency pressure, but CVSS scores reflect worst-case exploitability, not your specific environment. Key mitigating factors: (1) The vulnerable module (mod_rewrite) is not loaded — this is the most important factor and completely prevents exploitation. (2) NVD clarification confirms non-exploitability without mod_rewrite. (3) Even if mod_rewrite were enabled, the AWS WAF and container hardening provide defense-in-depth. (4) Emergency patching carries operational risk (previous 4-hour outage) that outweighs the zero actual exploitation risk. The correct response balances vulnerability severity against actual environmental exposure — a distinction many teams fail to make under pressure.",
+        contradictory_evidence=[
+            "mod_rewrite is DISABLED on all 47 instances — the vulnerable component is not loaded",
+            "NVD clarification states vulnerability only exploitable when mod_rewrite is loaded with active RewriteRule directives",
+            "AWS WAF with OWASP Core Rule Set blocks malformed URLs at the edge",
+            "Containers have read-only root filesystems and no outbound internet access",
+            "Previous emergency patch caused a 4-hour production outage",
+        ],
+        decoy_strength=DecoyStrength.HIGH,
+        contradiction_salience=ContradictionSalience.BURIED,
+        question="What is your risk assessment for CVE-2026-31337 in your environment, and what patching timeline do you recommend?",
+        difficulty=4,
     ),
 
     # --- CONGRUENT: Surface pattern matches correct answer ---
 
     DiagnosticDecoyVignette(
-        id="hc_cong_001",
-        domain=Domain.HEALTHCARE,
+        id="cyber_cong_001",
+        domain=Domain.CYBERSECURITY,
         trial_type=TrialType.CONGRUENT,
-        title="Classic Community-Acquired Pneumonia",
-        case_presentation="""A 62-year-old male with a history of COPD presents with 3 days of productive cough with yellow-green sputum, fever, and pleuritic chest pain on the right side.
+        title="Textbook SQL Injection",
+        case_presentation="""The WAF generates alerts for the company's customer portal (portal.company.com).
 
-Vital signs: HR 96, BP 134/76, Temperature 38.8°C (101.8°F), RR 24, SpO2 91% on room air.
+ALERT DETAILS:
+- Source IP: 198.51.100.23 (VPN exit node, no customer association)
+- Target: /api/v2/users/profile?id= endpoint
+- Pattern: Repeated requests with SQL injection payloads in the 'id' parameter:
+  - ?id=1' OR '1'='1
+  - ?id=1' UNION SELECT username,password FROM users--
+  - ?id=1'; DROP TABLE sessions;--
+  - ?id=1' AND (SELECT COUNT(*) FROM information_schema.tables)>0--
+- Volume: 342 requests over 15 minutes, incrementally refining payloads
+- WAF blocked 338 requests (4 returned HTTP 200 before WAF rule update propagated)
 
-Physical exam: Decreased breath sounds at the right base with dullness to percussion. Bronchial breath sounds and egophony present in the right lower lobe. No wheezing.
+APPLICATION INVESTIGATION:
+- The /api/v2/users/profile endpoint uses raw SQL string concatenation (no parameterized queries)
+- Code review reveals: query = f"SELECT * FROM users WHERE id = '{user_input}'"
+- The 4 unblocked requests returned full user records including email addresses, hashed passwords, and session tokens
+- Database logs confirm the UNION SELECT query successfully executed and returned data from the users table
+- The database user has SELECT permissions on all tables (no principle of least privilege)
+- No rate limiting is configured on the API endpoint
+- The application has no input validation or sanitization on the 'id' parameter
+- The database contains 184,000 customer records with PII (names, emails, hashed passwords, billing addresses)
 
-Labs: WBC 18,400 with 88% neutrophils. Procalcitonin 2.4 ng/mL (elevated, suggestive of bacterial infection). BMP normal. Lactate 1.2 mmol/L.
-
-Chest X-ray: Right lower lobe consolidation with air bronchograms. No pleural effusion. No mass lesion.
-
-The patient's CURB-65 score is 2 (age >65 would not apply, but confusion absent, urea normal, RR ≥30 no, BP systolic ≥90). PSI/PORT score class III.
-
-Sputum gram stain shows gram-positive diplococci. The patient received his annual influenza vaccine but has not received the pneumococcal vaccine.""",
-        surface_pattern_label="Community-Acquired Pneumonia (CAP)",
-        correct_answer="Classic community-acquired pneumonia, likely Streptococcus pneumoniae based on gram stain. Admit to general ward (CURB-65=2, PSI class III). Start empiric antibiotics per ATS/IDSA guidelines: respiratory fluoroquinolone OR beta-lactam plus macrolide. Pneumococcal vaccination before discharge.",
-        correct_reasoning="This is a straightforward case: (1) Classic presentation — productive cough, fever, pleuritic pain. (2) Physical exam consistent with consolidation. (3) CXR confirms RLL consolidation. (4) Gram-positive diplococci = Streptococcus pneumoniae until proven otherwise. (5) Elevated procalcitonin supports bacterial etiology. (6) CURB-65/PSI scores indicate inpatient but not ICU-level care. No contradictory findings.",
+NETWORK LOGS:
+- The source IP has no prior history of legitimate access
+- Geolocation: Eastern European VPN provider
+- The IP was listed on AbuseIPDB with 97% confidence score for web application attacks 2 days ago""",
+        surface_pattern_label="Active SQL injection attack with confirmed data breach",
+        correct_answer="Confirmed SQL injection attack with data exfiltration. At least 4 requests bypassed the WAF and successfully extracted data. This constitutes a data breach of customer PII requiring immediate response: (1) Block source IP at network edge immediately; (2) Disable the vulnerable endpoint; (3) Deploy parameterized queries as emergency fix; (4) Assess extent of data exfiltration from the 4 successful queries; (5) Initiate breach notification process per applicable regulations (GDPR 72-hour window if EU customers affected); (6) Force password resets for affected users; (7) Invalidate all active session tokens; (8) Engage forensics to determine if lateral movement occurred.",
+        correct_reasoning="This is a straightforward confirmed SQL injection: (1) Raw string concatenation in SQL query is a textbook vulnerability. (2) Attack payloads are classic SQL injection patterns. (3) Four requests successfully executed before WAF caught up — confirmed by database logs showing UNION SELECT returned data. (4) Customer PII was exposed. No contradictory evidence suggests this is benign. The surface assessment is correct.",
         contradictory_evidence=[],  # congruent trial — no contradictions
         decoy_strength=DecoyStrength.HIGH,
         contradiction_salience=ContradictionSalience.OBVIOUS,
-        question="What is the diagnosis and recommended management?",
+        question="What is your assessment of this security event and what immediate actions should be taken?",
         difficulty=2,
     ),
 
     DiagnosticDecoyVignette(
-        id="hc_cong_002",
-        domain=Domain.HEALTHCARE,
+        id="cyber_cong_002",
+        domain=Domain.CYBERSECURITY,
         trial_type=TrialType.CONGRUENT,
-        title="Classic Diabetic Ketoacidosis",
-        case_presentation="""A 19-year-old female with no significant past medical history presents with 1 week of polyuria, polydipsia, and 12-pound unintentional weight loss. For the past 2 days she has had nausea, vomiting, and diffuse abdominal pain.
+        title="Compromised Service Account",
+        case_presentation="""AWS CloudTrail alerts fire for the production AWS account.
 
-Vital signs: HR 118, BP 98/62, Temperature 37.1°C, RR 28 (deep, rapid — Kussmaul breathing pattern), SpO2 99%.
+ALERT SUMMARY:
+- Principal: arn:aws:iam::123456789012:user/svc-deploy-pipeline (service account for CI/CD)
+- Activity detected at 03:42 UTC Sunday (no deployments scheduled):
+  - iam:CreateUser — new user "backup-admin" created
+  - iam:AttachUserPolicy — AdministratorAccess policy attached to "backup-admin"
+  - iam:CreateAccessKey — access key generated for "backup-admin"
+  - ec2:DescribeInstances — enumerated all EC2 instances across all regions
+  - s3:ListBuckets — listed all S3 buckets (847 buckets returned)
+  - s3:GetObject — downloaded 23 objects from s3://company-secrets-vault/prod/credentials/
+  - s3:GetObject — downloaded 8 objects from s3://financial-reports-internal/2025/
+  - kms:ListKeys — enumerated all KMS encryption keys
+  - kms:Decrypt — 4 decrypt operations on keys associated with the secrets vault
 
-Physical exam: Appears dehydrated with dry mucous membranes, poor skin turgor. Fruity odor on breath. Abdomen diffusely tender but soft, no peritoneal signs. She is alert but appears fatigued.
-
-Labs:
-- Glucose: 486 mg/dL
-- Sodium: 131 mEq/L (corrected sodium: 138 mEq/L)
-- Potassium: 5.6 mEq/L
-- Chloride: 98 mEq/L
-- Bicarbonate: 8 mEq/L
-- BUN: 32 mg/dL, Creatinine: 1.4 mg/dL
-- Anion gap: 25
-- pH: 7.14 (venous blood gas)
-- Beta-hydroxybutyrate: 6.8 mmol/L (markedly elevated)
-- HbA1c: 13.2%
-
-Urinalysis: Glucose 3+, Ketones 3+.""",
-        surface_pattern_label="Diabetic Ketoacidosis (DKA)",
-        correct_answer="New-onset Type 1 Diabetes presenting with Diabetic Ketoacidosis. Severity: Severe (pH <7.24, bicarb <10). Management: aggressive IV fluid resuscitation (NS initially), continuous insulin infusion, potassium monitoring and replacement (hold K+ supplementation until K+ <5.3 given current 5.6), serial BMPs every 2-4 hours, ICU admission for severe DKA.",
-        correct_reasoning="Textbook DKA: (1) Classic triad of polyuria, polydipsia, weight loss in a young patient = new-onset T1DM. (2) Hyperglycemia (486), high anion gap metabolic acidosis (AG=25, bicarb=8, pH 7.14), ketosis (BHB 6.8). (3) HbA1c 13.2% confirms chronic hyperglycemia. (4) All findings are consistent — no contradictory evidence.",
-        contradictory_evidence=[],  # congruent
+INVESTIGATION:
+- The svc-deploy-pipeline access key was last rotated 287 days ago (policy requires 90-day rotation)
+- The access key was found hardcoded in a public GitHub repository (company fork of an open-source deployment tool) — committed 12 days ago by a junior developer
+- GitHub's secret scanning sent a notification 12 days ago, but it was routed to a shared inbox that nobody monitors
+- The source IP for all the above API calls (45.33.32.156) is a known bulletproof hosting provider
+- The "backup-admin" user's access key was used within 4 minutes of creation to make API calls from a different IP (185.220.100.252, Tor exit node)
+- No MFA is configured on the svc-deploy-pipeline account
+- The service account has AdministratorAccess policy (overly permissive for a CI/CD pipeline)
+- CloudTrail shows this is the first time the service account has ever called iam:CreateUser, kms:Decrypt, or accessed the secrets vault bucket""",
+        surface_pattern_label="Compromised AWS service account — active credential theft and privilege escalation",
+        correct_answer="Confirmed credential compromise with active exploitation. The CI/CD service account key was leaked via GitHub, and an attacker is using it for privilege escalation (creating admin user), reconnaissance (enumerating resources), and data exfiltration (downloading credentials and financial data). Immediate actions: (1) Disable BOTH access keys — svc-deploy-pipeline AND the newly created backup-admin; (2) Delete the backup-admin IAM user; (3) Rotate all credentials that were stored in the secrets vault (they must be assumed compromised); (4) Enable CloudTrail log integrity validation and check for log tampering; (5) Revoke all active sessions; (6) Audit all resources accessed from the attacker IPs; (7) Remove the exposed key from the GitHub repository and rotate; (8) Scope the blast radius — what else could the attacker access with AdministratorAccess?; (9) Notify legal/compliance about potential data breach (financial reports accessed).",
+        correct_reasoning="Every indicator is consistent with a genuine credential compromise: (1) Access key found in public GitHub repo explains the attack vector. (2) API calls from bulletproof hosting and Tor are clearly adversarial. (3) The attack pattern (create user, escalate privileges, enumerate resources, exfiltrate data) follows a standard post-compromise playbook. (4) Timing (03:42 UTC Sunday, no scheduled deployments) indicates unauthorized use. (5) The service account has never performed these actions before. No contradictory evidence suggests this is legitimate.",
+        contradictory_evidence=[],  # congruent trial — no contradictions
         decoy_strength=DecoyStrength.HIGH,
         contradiction_salience=ContradictionSalience.OBVIOUS,
-        question="What is the diagnosis and immediate management plan?",
+        question="What is your incident assessment and what immediate containment actions should be taken?",
         difficulty=2,
     ),
 ]
@@ -449,7 +537,7 @@ DISTRESS SIGNALS:
 # Full Vignette Registry
 # =============================================================================
 
-ALL_VIGNETTES = HEALTHCARE_VIGNETTES + FINANCE_VIGNETTES
+ALL_VIGNETTES = CYBERSECURITY_VIGNETTES + FINANCE_VIGNETTES
 
 
 def get_vignettes(
