@@ -44,7 +44,7 @@ class VulnResponse:
     severity_or_answer: str
     explanation: str
     confidence: float
-    wager: int
+    wager: float  # changed from int — Gemini structured output doesn't support integer type
     reasoning: str
 
 @dataclass
@@ -52,7 +52,7 @@ class RiskFactorResponse:
     assessment: str
     rationale: str
     confidence: float
-    wager: int
+    wager: float  # changed from int — Gemini structured output doesn't support integer type
     reasoning: str
 
 # %%
@@ -594,7 +594,7 @@ def calibrated_confidence_benchmark(llm) -> float:
         answer = result["severity_or_answer"].lower().strip().replace(" ", "_")
         is_correct = answer == item["correct"] or item["correct"] in answer
         conf = max(0.0, min(1.0, result["confidence"]))
-        wager = max(0, min(100, result["wager"]))
+        wager = max(0, min(100, int(result["wager"])))
 
         cyber_scores["confidences"].append(conf)
         cyber_scores["accuracies"].append(is_correct)
@@ -619,7 +619,7 @@ def calibrated_confidence_benchmark(llm) -> float:
         expected = "materialized" if item["materialized"] else "did_not_materialize"
         is_correct = result["assessment"].lower().strip().replace(" ", "_") == expected
         conf = max(0.0, min(1.0, result["confidence"]))
-        wager = max(0, min(100, result["wager"]))
+        wager = max(0, min(100, int(result["wager"])))
 
         fin_scores["confidences"].append(conf)
         fin_scores["accuracies"].append(is_correct)

@@ -18,14 +18,13 @@ The rational strategy is to abstain when P(correct) < 0.167
 # %%
 import kaggle_benchmarks as kbench
 from dataclasses import dataclass, asdict
-from typing import Optional
 
 # %%
 @dataclass
 class AbstentionResponse:
     decision: str               # "answer" or "abstain"
-    answer: Optional[str]       # the answer if answering, null if abstaining
-    specialist_referral: Optional[str]
+    answer: str                 # the answer if answering, empty string if abstaining
+    specialist_referral: str    # type of specialist or empty string
     missing_information: list[str]
     confidence: float
     reasoning: str
@@ -337,7 +336,7 @@ Only answer when confident. Abstaining is much better than being wrong.
 ## Question
 {item['question']}
 
-Respond in JSON: {{"decision": "answer|abstain", "answer": "your answer or null", "specialist_referral": "type or null", "missing_information": ["..."], "confidence": 0.0-1.0, "reasoning": "..."}}"""
+Respond in JSON: {{"decision": "answer|abstain", "answer": "your answer or empty string if abstaining", "specialist_referral": "specialist type or empty string", "missing_information": ["..."], "confidence": 0.0-1.0, "reasoning": "..."}}"""
 
         resp = ask_abstention.run(llm=llm, prompt=prompt)
 
