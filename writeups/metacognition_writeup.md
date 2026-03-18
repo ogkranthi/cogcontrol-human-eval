@@ -10,9 +10,9 @@
 
 This benchmark measures **metacognition** — the ability to monitor and regulate one's own cognitive processes — in large language models under high-stakes professional conditions.
 
-Metacognition is the cognitive system's capacity to evaluate its own outputs: knowing what you know, knowing what you don't know, and acting accordingly. Nelson and Narens (1990) decomposed metacognition into **monitoring** (assessing one's own confidence and competence) and **control** (using that assessment to regulate behavior, such as choosing to abstain when uncertain). These processes are considered foundational to general intelligence — an agent that cannot gauge its own reliability is fundamentally limited regardless of its domain knowledge.
+Nelson and Narens (1990) decomposed metacognition into **monitoring** (assessing confidence) and **control** (regulating behavior based on that assessment). These processes are foundational to general intelligence — an agent that cannot gauge its own reliability is fundamentally limited.
 
-CogControl-Stakes operationalizes two validated metacognitive paradigms as LLM evaluations:
+CogControl-Stakes operationalizes two validated paradigms:
 
 - **MC-1 (Calibrated Confidence)**: A wagering paradigm (Persaud et al., 2007) that measures monitoring accuracy — can the model's behavioral confidence (points wagered) predict its actual accuracy?
 - **MC-2 (Selective Abstention)**: An asymmetric-payoff opt-out paradigm (Koriat & Goldsmith, 1996) that measures control quality — does the model know when to defer rather than risk a costly wrong answer?
@@ -29,7 +29,7 @@ Both tasks use **cybersecurity** and **finance** domains where metacognitive fai
 
 3. **Difficulty-stratified analysis across professional domains.** Both tasks span 5 difficulty tiers (D1-D5) across cybersecurity and finance, enabling fine-grained analysis of where metacognitive calibration breaks down. Does the model exhibit Dunning-Kruger effects — overconfidence on hard items where it lacks competence?
 
-4. **Three complementary calibration metrics (MC-1).** Expected Calibration Error (ECE), Brier Score, and the novel WWA provide a complete picture: ECE measures binned calibration, Brier captures joint accuracy-calibration, and WWA measures whether the model's confidence translates into rational betting behavior.
+4. **Three complementary calibration metrics (MC-1).** ECE, Brier Score, and the novel WWA provide a complete picture of calibration quality.
 
 ## 3. Task Design
 
@@ -72,6 +72,21 @@ Two evaluation sub-tasks across professional domains:
 
 Evaluated on **Gemini 2.5 Flash** via Kaggle Community Benchmarks:
 
+### MC-1: Calibrated Confidence
+| Metric | Value |
+|--------|-------|
+| Overall Accuracy | 78.00% |
+| Expected Calibration Error (ECE) | 0.2084 |
+| Brier Score | 0.2063 |
+| Wager-Weighted Accuracy (WWA) | 0.3609 |
+| Cybersecurity ECE | 0.2577 |
+| Finance ECE | 0.1345 |
+| Cross-Domain ECE Gap | 0.1232 |
+
+The model achieves 78% accuracy but wagers near-maximum (90-100) on almost every item, including wrong answers. The ECE of 0.2084 reveals systematic overconfidence — the model states 0.95+ confidence on items where it achieves only ~78% accuracy. The cross-domain gap (cyber ECE 0.26 vs. finance ECE 0.13) shows worse calibration in the cybersecurity domain, where nuanced severity judgments demand more uncertainty than the model expresses.
+
+The WWA of 0.36 is driven down by high-confidence wrong answers incurring double penalties.
+
 ### MC-2: Selective Abstention
 | Metric | Value |
 |--------|-------|
@@ -108,11 +123,10 @@ Key findings:
 | MC-1: Calibrated Confidence | Wagering Paradigm | Persaud et al. (2007); Nelson & Narens (1990) | Metacognitive monitoring — confidence-accuracy alignment |
 | MC-2: Selective Abstention | Feeling of Knowing + Opt-out | Koriat & Goldsmith (1996) | Metacognitive control — knowing when to defer |
 
-Nelson and Narens (1990) established the monitoring-control framework as the foundation of metacognition research. Persaud et al. (2007) demonstrated that wagering paradigms reveal metacognitive abilities that verbal reports miss — subjects who claim no confidence still wager above chance when they implicitly "know." Koriat and Goldsmith (1996) showed that the decision to volunteer or withhold an answer is a distinct metacognitive control process, separable from monitoring accuracy. CogControl-Stakes is the first benchmark to bring all three paradigms to LLM evaluation.
+Persaud et al. (2007) demonstrated that wagering paradigms reveal metacognitive abilities that verbal reports miss. Koriat and Goldsmith (1996) showed that the decision to volunteer or withhold an answer is a distinct metacognitive control process. CogControl-Stakes is the first benchmark to bring these paradigms to LLM evaluation.
 
 ## 6. Limitations and Future Work
 
-- **MC-1 results pending**: The calibrated confidence benchmark (MC-1) is running; the writeup will be updated with ECE, Brier, and WWA metrics when complete.
 - **Keyword-based correctness**: MC-2 uses keyword matching which may penalize semantically correct but differently worded answers.
 - **Domain scope**: Cybersecurity and finance only. Medical, legal, and scientific domains would test generalization.
 - **Human baseline**: A human evaluation interface at ogkranthi.github.io/cogcontrol-human-eval/ will establish expert baselines for the abstention task.
