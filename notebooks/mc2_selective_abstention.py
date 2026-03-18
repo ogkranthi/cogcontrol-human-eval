@@ -1,16 +1,4 @@
-"""
-CogControl-Stakes | MC-2: Selective Abstention Under Stakes
-=============================================================
-Track: Metacognition
-Cognitive Science Basis: Feeling of Knowing (FOK) + Opt-out paradigms
-                        Koriat & Goldsmith (1996)
-
-Tests whether models know the boundary of their competence and defer
-when they are likely to be wrong. Uses asymmetric payoffs:
-  Correct: +10 | Wrong: -50 | Abstain: -2
-
-The rational strategy is to abstain when P(correct) < 0.167
-"""
+"""MC-2: Selective Abstention — asymmetric payoff test for LLM metacognition."""
 
 # %%
 !pip install -q kaggle-benchmarks

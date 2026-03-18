@@ -1,15 +1,4 @@
-"""
-CogControl-Stakes | MC-1: Calibrated Confidence Under Stakes
-=============================================================
-Track: Metacognition
-Cognitive Science Basis: Nelson & Narens (1990) Monitoring-Control Framework
-                        Persaud et al. (2007) Wagering Paradigm
-
-Tests whether models can accurately assess their own confidence using
-a behavioral wagering paradigm — not just verbalized confidence.
-
-Novel metric: Wager-Weighted Accuracy (exponential penalty for overconfidence)
-"""
+"""MC-1: Calibrated Confidence — wagering paradigm for LLM metacognition."""
 
 # %%
 !pip install -q kaggle-benchmarks
