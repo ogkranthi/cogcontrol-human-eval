@@ -11,6 +11,9 @@ a behavioral wagering paradigm — not just verbalized confidence.
 Novel metric: Wager-Weighted Accuracy (exponential penalty for overconfidence)
 """
 
+# %%
+!pip install -q kaggle-benchmarks
+
 # %% [markdown]
 # # MC-1: Calibrated Confidence Under Stakes
 #

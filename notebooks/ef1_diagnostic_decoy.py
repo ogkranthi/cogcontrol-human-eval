@@ -14,6 +14,9 @@ Novel metric: LLM Interference Effect = accuracy_congruent - accuracy_incongruen
 This notebook is designed to run on Kaggle Community Benchmarks.
 """
 
+# %%
+!pip install -q kaggle-benchmarks
+
 # %% [markdown]
 # # EF-1: The Diagnostic Decoy — A Stroop Test for LLMs
 #

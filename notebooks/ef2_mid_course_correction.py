@@ -11,6 +11,9 @@ gratuitously changing things that should stay the same.
 Novel metric: Perseverative Error Rate (WCST analog for LLMs)
 """
 
+# %%
+!pip install -q kaggle-benchmarks
+
 # %% [markdown]
 # # EF-2: The Mid-Course Correction — A WCST for LLMs
 #

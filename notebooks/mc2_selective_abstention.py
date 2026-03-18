@@ -13,6 +13,9 @@ The rational strategy is to abstain when P(correct) < 0.167
 """
 
 # %%
+!pip install -q kaggle-benchmarks
+
+# %%
 import kaggle_benchmarks as kbench
 from dataclasses import dataclass
 from typing import Optional
