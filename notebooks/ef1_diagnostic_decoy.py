@@ -1147,7 +1147,6 @@ def score_response(response: DecoyResponse, vignette: dict) -> dict:
 # %%
 # === Main Task: Run one vignette ===
 
-@kbench.task(store_task=False)
 def run_single_decoy(llm, case: str, question: str, vignette_id: str) -> dict:
     """Evaluate a single Diagnostic Decoy vignette."""
     prompt = f"""You are an expert advisor. Read the following case carefully and answer the question.
@@ -1198,7 +1197,7 @@ def diagnostic_decoy_benchmark(llm) -> float:
     all_results = []
 
     for v in VIGNETTES:
-        result = run_single_decoy.run(
+        result = run_single_decoy(
             llm=llm,
             case=v["case"],
             question=v["question"],

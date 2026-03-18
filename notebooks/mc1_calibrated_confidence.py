@@ -520,7 +520,6 @@ def compute_wwa(accuracies, wagers, penalty_mult=2.0):
 # %%
 # === Sub-task: Single Vulnerability Assessment ===
 
-@kbench.task(store_task=False)
 def eval_vuln(llm, scenario: str, item_id: str) -> dict:
     prompt = f"""You are a cybersecurity expert assessing vulnerabilities and threats.
 
@@ -540,7 +539,6 @@ Respond in JSON: {{"severity_or_answer": "your answer", "explanation": "brief ex
 # %%
 # === Sub-task: Single Risk Factor evaluation ===
 
-@kbench.task(store_task=False)
 def eval_risk_factor(llm, company: str, sector: str, year: int, risk: str, item_id: str) -> dict:
     prompt = f"""You are a financial analyst assessing risk factor materiality.
 
@@ -584,7 +582,7 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Cybersecurity: Vulnerability assessments
     print("\n--- Cybersecurity Domain: Vulnerability Assessment ---")
     for item in CYBER_ITEMS:
-        result = eval_vuln.run(
+        result = eval_vuln(
             llm=llm,
             scenario=item["prompt"],
             item_id=item["id"],
@@ -609,7 +607,7 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Finance: Risk factors
     print("\n--- Finance Domain: Risk Factor Materiality ---")
     for item in RF_ITEMS:
-        result = eval_risk_factor.run(
+        result = eval_risk_factor(
             llm=llm,
             company=item["company"], sector=item["sector"],
             year=item["year"], risk=item["risk"],
