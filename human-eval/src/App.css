@@ -276,9 +276,9 @@ body {
   border-radius: 12px;
 }
 
-.domain-tag.healthcare {
-  color: var(--green);
-  background: var(--green-bg);
+.domain-tag.cybersecurity {
+  color: #22d3ee;
+  background: rgba(34, 211, 238, 0.12);
 }
 
 .domain-tag.finance {

@@ -2,13 +2,29 @@ import { useState } from "react";
 
 const SEVERITY_OPTIONS = ["none", "minor", "moderate", "major", "contraindicated"];
 const MATERIALITY_OPTIONS = ["materialized", "did_not_materialize"];
+const CYBER_SEVERITY_OPTIONS = ["not_vulnerable", "informational", "low", "medium", "high", "critical"];
 
 export default function CalibrationTask({ item, onSubmit }) {
   const [answer, setAnswer] = useState("");
   const [confidence, setConfidence] = useState(50);
   const [wager, setWager] = useState(50);
 
-  const options = item.subtype === "Drug Interaction" ? SEVERITY_OPTIONS : MATERIALITY_OPTIONS;
+  const getOptions = () => {
+    if (item.domain === "cybersecurity") {
+      if (item.subtype === "attack_identification" && item.difficulty >= 5) {
+        // The DNS rebinding item has specific answer options
+        return ["dns_rebinding", "overprivileged_service_account", "chrome_misconfiguration", "network_policy_gap", "multiple_misconfigurations"];
+      }
+      if (item.subtype === "attack_identification" && item.difficulty <= 1) {
+        // Phishing classification item
+        return ["legitimate", "phishing", "spam", "graymail"];
+      }
+      return CYBER_SEVERITY_OPTIONS;
+    }
+    if (item.subtype === "Drug Interaction") return SEVERITY_OPTIONS;
+    return MATERIALITY_OPTIONS;
+  };
+  const options = getOptions();
 
   const handleSubmit = (e) => {
     e.preventDefault();
