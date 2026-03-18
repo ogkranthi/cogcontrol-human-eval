@@ -70,6 +70,41 @@ body {
   font-weight: 500;
 }
 
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 4px;
+  border: 1px solid var(--border);
+  display: inline-flex;
+}
+
+.tab {
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* Progress */
 .progress-bar {
   width: 100%;
@@ -621,6 +656,112 @@ body {
   color: var(--text-dim);
   font-size: 0.82rem;
   margin-top: 8px;
+}
+
+/* LLM Results */
+.llm-results {
+  padding: 20px 0;
+}
+
+.llm-results-model {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  margin-bottom: 28px;
+}
+
+.llm-results-model strong {
+  color: var(--text-h);
+}
+
+.card-subtitle {
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+  margin-top: -8px;
+}
+
+/* Tier Table */
+.tier-table {
+  width: 100%;
+  margin-top: 16px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tier-table th {
+  text-align: left;
+  color: var(--text-dim);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tier-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--surface-2);
+  color: var(--text);
+}
+
+.tier-table td.good {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.tier-table td.bad {
+  color: var(--red);
+  font-weight: 700;
+}
+
+/* Key Findings */
+.key-findings {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.key-findings h2 {
+  color: var(--text-h);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.key-findings ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.key-findings li {
+  font-size: 0.9rem;
+  color: var(--text);
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.key-findings li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.key-findings li strong {
+  color: var(--text-h);
 }
 
 /* Responsive */

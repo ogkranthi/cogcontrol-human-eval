@@ -4,11 +4,13 @@ import DecoyTask from "./components/DecoyTask";
 import CalibrationTask from "./components/CalibrationTask";
 import AbstentionTask from "./components/AbstentionTask";
 import Results from "./components/Results";
+import LLMResults from "./components/LLMResults";
 import "./App.css";
 
 const STORAGE_KEY = "cogcontrol_human_eval";
 
 function App() {
+  const [mode, setMode] = useState("llm-results"); // llm-results | human-eval
   const [phase, setPhase] = useState("intro"); // intro | task | results
   const [currentTaskIdx, setCurrentTaskIdx] = useState(0);
   const [currentItemIdx, setCurrentItemIdx] = useState(0);
@@ -79,13 +81,34 @@ function App() {
     }
   };
 
-  // INTRO
+  // LLM RESULTS MODE (default landing page)
+  if (mode === "llm-results") {
+    return (
+      <div className="app">
+        <header className="app-header">
+          <h1>CogControl-Stakes</h1>
+          <p className="subtitle">Benchmark Results</p>
+          <nav className="tab-nav">
+            <button className="tab active" onClick={() => setMode("llm-results")}>LLM Results</button>
+            <button className="tab" onClick={() => setMode("human-eval")}>Take Human Eval</button>
+          </nav>
+        </header>
+        <LLMResults />
+      </div>
+    );
+  }
+
+  // HUMAN EVAL: INTRO
   if (phase === "intro") {
     return (
       <div className="app">
         <header className="app-header">
           <h1>CogControl-Stakes</h1>
           <p className="subtitle">Human Baseline Evaluation</p>
+          <nav className="tab-nav">
+            <button className="tab" onClick={() => setMode("llm-results")}>LLM Results</button>
+            <button className="tab active" onClick={() => setMode("human-eval")}>Take Human Eval</button>
+          </nav>
         </header>
         <div className="intro-content">
           <p>
@@ -125,13 +148,17 @@ function App() {
     );
   }
 
-  // RESULTS
+  // HUMAN EVAL: RESULTS
   if (phase === "results") {
     return (
       <div className="app">
         <header className="app-header">
           <h1>CogControl-Stakes</h1>
           <p className="subtitle">Human Baseline Results</p>
+          <nav className="tab-nav">
+            <button className="tab" onClick={() => setMode("llm-results")}>LLM Results</button>
+            <button className="tab active" onClick={() => setMode("human-eval")}>Take Human Eval</button>
+          </nav>
         </header>
         <Results allResults={allResults} />
         <button onClick={handleReset} className="reset-btn" style={{ marginTop: "2rem" }}>
@@ -141,7 +168,7 @@ function App() {
     );
   }
 
-  // TASK
+  // HUMAN EVAL: TASK
   return (
     <div className="app">
       <header className="app-header compact">
