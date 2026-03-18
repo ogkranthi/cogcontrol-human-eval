@@ -1,7 +1,7 @@
 # CogControl-Stakes: Executive Functions Benchmark
 
 **Track:** Executive Functions
-**Benchmark:** CogControl-Stakes: Executive Functions (EF-1 + EF-2)
+**Benchmark:** [CogControl-Stakes: Executive Functions](https://www.kaggle.com/benchmarks/ogkranthi22/cogcontrol-stakes-executive-functions) (EF-1 + EF-2)
 **Author:** Kranthi Kumar
 
 ---

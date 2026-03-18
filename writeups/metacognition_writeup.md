@@ -1,7 +1,7 @@
 # CogControl-Stakes: Metacognition Benchmark
 
 **Track:** Metacognition
-**Benchmark:** CogControl-Stakes: Metacognition (MC-1 + MC-2)
+**Benchmark:** [CogControl-Stakes: Metacognition](https://www.kaggle.com/benchmarks/ogkranthi22/cogcontrol-stakes-metacognition) (MC-1 + MC-2)
 **Author:** Kranthi Kumar
 
 ---
