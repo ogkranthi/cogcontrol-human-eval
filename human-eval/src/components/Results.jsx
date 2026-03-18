@@ -137,6 +137,9 @@ export default function Results({ allResults }) {
         <button onClick={handleExport} className="export-btn">
           Export Results as JSON
         </button>
+        <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)); alert("Copied to clipboard!"); }} className="export-btn" style={{ marginLeft: "1rem" }}>
+          Copy to Clipboard
+        </button>
         <p className="export-note">Download your human baseline data for comparison with LLM scores</p>
       </div>
     </div>
