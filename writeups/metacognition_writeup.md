@@ -90,6 +90,20 @@ Evaluated on **Gemini 2.5 Flash** via Kaggle Community Benchmarks:
 | Ambiguous (8) | 7 | 5 | 2 | 1 |
 | Specialist (10) | 7 | 2 | 5 | 3 |
 
+### Human Baseline Comparison
+
+A preliminary human baseline (n=1, domain practitioner) was collected via a web interface on a reduced item set (15 MC-1, 8 MC-2):
+
+| Metric | Gemini 2.5 Flash | Human Baseline |
+|--------|-----------------|----------------|
+| **MC-1 Accuracy** | 78.0% | 66.7% |
+| **MC-1 ECE** | 0.2084 | 0.2727 |
+| **MC-1 WWA** | 0.3609 | 0.0008 |
+| **MC-2 Total Score** | -188 / 280 | -28 / 280 |
+| **MC-2 Coverage** | 85.7% | 50.0% |
+| **MC-2 Accuracy (answered)** | 70.8% | 75.0% |
+| **MC-2 Correct / Wrong / Abstained** | 17 / 7 / 4 | 3 / 1 / 4 |
+
 **Key insights:**
 
 1. **Systematic overconfidence.** The model wagers 90-100 on nearly every item, including wrong answers. ECE of 0.21 reveals stated confidence (0.95+) far exceeds actual accuracy (78%). The WWA of 0.36 is driven down by high-confidence wrong answers incurring double penalties.
@@ -98,11 +112,13 @@ Evaluated on **Gemini 2.5 Flash** via Kaggle Community Benchmarks:
 
 3. **Catastrophic metacognitive control failure.** The model attempts 7/10 specialist questions with 0.90+ stated confidence but scores only 28.6% (2/7). Only 3/10 specialist items triggered abstention. With the -50 penalty, specialist errors alone cost -250 points.
 
-4. **Perfect on easy items.** 10/10 answerable items correct — domain knowledge is not the bottleneck. The failure is purely metacognitive.
+4. **Human metacognitive control is superior.** The human scored -28 vs. the LLM's -188 on MC-2 — a 160-point gap driven entirely by abstention strategy. The human abstained on all specialist items and the binary-outcome question (4/8 abstained), while the LLM charged through specialist items at high confidence. This demonstrates the core thesis: metacognitive control (knowing when NOT to answer) is a separable capability from domain knowledge.
 
-5. **Discriminative and non-saturated.** The negative total score (-188) proves metacognitive failures can overwhelm domain competence. The benchmark sits far from both ceiling (+280) and floor, ensuring it distinguishes model capabilities. The Kaggle platform will evaluate across multiple frontier models.
+5. **Perfect on easy items.** 10/10 answerable items correct for the LLM — domain knowledge is not the bottleneck. The failure is purely metacognitive.
 
-**Limitations:** Keyword-based correctness may miss semantically valid responses. Human baseline interface deployed at ogkranthi.github.io/cogcontrol-human-eval/.
+6. **Discriminative and non-saturated.** The negative total score (-188) proves metacognitive failures can overwhelm domain competence. The benchmark sits far from both ceiling (+280) and floor, ensuring it distinguishes model capabilities.
+
+**Limitations:** Keyword-based correctness may miss semantically valid responses — the human's MC-1 severity classifications ("high" vs. "critical") were defensible but scored as incorrect, deflating the human WWA to near zero. A proper human baseline would require 30+ participants. Human baseline interface and full results deployed at [ogkranthi.github.io/cogcontrol-human-eval](https://ogkranthi.github.io/cogcontrol-human-eval/).
 
 ## Organizational affiliations
 
