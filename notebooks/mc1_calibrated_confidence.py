@@ -586,14 +586,19 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Cybersecurity: Vulnerability assessments
     print("\n--- Cybersecurity Domain: Vulnerability Assessment ---")
     for item in CYBER_ITEMS:
+        # Normalize keys: old format has "prompt"/"correct"/"type", new has "scenario"/"correct_answer"/"scenario_type"
+        scenario_text = item.get("prompt") or (item["scenario"] + "\n\n" + item.get("question", ""))
+        correct = (item.get("correct") or item.get("correct_answer", "")).lower().strip().replace(" ", "_")
+        item_type = item.get("type") or item.get("scenario_type", "unknown")
+
         run_result = eval_vuln.run(
             llm=llm,
-            scenario=item["prompt"],
+            scenario=scenario_text,
             item_id=item["id"],
         )
         result = run_result.result if hasattr(run_result, 'result') else run_result
         answer = result["severity_or_answer"].lower().strip().replace(" ", "_")
-        is_correct = answer == item["correct"] or item["correct"] in answer
+        is_correct = answer == correct or correct in answer
         conf = max(0.0, min(1.0, result["confidence"]))
         wager = max(0, min(100, int(result["wager"])))
 
@@ -605,21 +610,38 @@ def calibrated_confidence_benchmark(llm) -> float:
         all_wagers.append(wager)
 
         status = "CORRECT" if is_correct else "WRONG"
-        print(f"  [{item['id']}] D{item['difficulty']} {item['type']}: "
+        print(f"  [{item['id']}] D{item['difficulty']} {item_type}: "
               f"{answer} ({status}) conf={conf:.2f} wager={wager}")
 
     # Finance: Risk factors
     print("\n--- Finance Domain: Risk Factor Materiality ---")
     for item in RF_ITEMS:
-        run_result = eval_risk_factor.run(
-            llm=llm,
-            company=item["company"], sector=item["sector"],
-            year=item["year"], risk=item["risk"],
-            item_id=item["id"],
-        )
-        result = run_result.result if hasattr(run_result, 'result') else run_result
-        expected = "materialized" if item["materialized"] else "did_not_materialize"
-        is_correct = result["assessment"].lower().strip().replace(" ", "_") == expected
+        if "risk" in item:
+            # Original format: has company, sector, year, risk, materialized
+            run_result = eval_risk_factor.run(
+                llm=llm,
+                company=item["company"], sector=item["sector"],
+                year=item["year"], risk=item["risk"],
+                item_id=item["id"],
+            )
+            result = run_result.result if hasattr(run_result, 'result') else run_result
+            expected = "materialized" if item["materialized"] else "did_not_materialize"
+            is_correct = result["assessment"].lower().strip().replace(" ", "_") == expected
+            label = item["company"]
+        else:
+            # New format: has scenario, question, correct_answer
+            scenario_text = item["scenario"] + "\n\n" + item.get("question", "")
+            run_result = eval_vuln.run(
+                llm=llm,
+                scenario=scenario_text,
+                item_id=item["id"],
+            )
+            result = run_result.result if hasattr(run_result, 'result') else run_result
+            correct = item.get("correct_answer", "").lower().strip()
+            answer = result["severity_or_answer"].lower().strip()
+            is_correct = correct in answer or answer in correct or (correct == "yes" and "materialize" in answer) or (correct == "no" and ("not" in answer or "did_not" in answer))
+            label = item["id"]
+
         conf = max(0.0, min(1.0, result["confidence"]))
         wager = max(0, min(100, int(result["wager"])))
 
@@ -631,8 +653,8 @@ def calibrated_confidence_benchmark(llm) -> float:
         all_wagers.append(wager)
 
         status = "CORRECT" if is_correct else "WRONG"
-        print(f"  [{item['id']}] D{item['difficulty']} {item['company']}: "
-              f"{result['assessment']} ({status}) conf={conf:.2f} wager={wager}")
+        print(f"  [{item['id']}] D{item['difficulty']} {label}: "
+              f"{result.get('assessment', result.get('severity_or_answer', ''))} ({status}) conf={conf:.2f} wager={wager}")
 
     # Compute metrics
     overall_ece = compute_ece(all_confidences, all_accuracies)
