@@ -271,20 +271,6 @@ High correlation = domain-general cognitive ability. Low correlation = domain-sp
 
 ---
 
-## EB1A Evidence Generated
-
-| Criterion | Evidence |
-|---|---|
-| **Original contribution** | Novel benchmark framework with first-ever LLM Stroop analog, Perseverative Error measurement, Wager-Weighted Accuracy, Cross-Domain Transfer Index |
-| **Awards/prizes** | Kaggle prize from $200K pool, Google DeepMind-judged international competition |
-| **Published material** | Kaggle notebook (public), NeurIPS D&B submission, arXiv preprint |
-| **Judging** | DeepMind researchers (Ryan Burnell et al.) evaluating your work |
-| **Significance** | Adopted on Kaggle Community Benchmarks platform, used by global AI community to evaluate frontier models |
-| **Recognition** | Google DeepMind association, potential media coverage of winners |
-| **Expert letters** | Request recommendation from DeepMind researchers post-results |
-
----
-
 ## Key Research Sources
 
 ### Cognitive Science Foundations
