@@ -36,7 +36,7 @@ Novel metric: Wager-Weighted Accuracy (exponential penalty for overconfidence)
 # %%
 import kaggle_benchmarks as kbench
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 # %%
 @dataclass
@@ -520,7 +520,9 @@ def compute_wwa(accuracies, wagers, penalty_mult=2.0):
 # %%
 # === Sub-task: Single Vulnerability Assessment ===
 
+@kbench.task(store_task=False)
 def eval_vuln(llm, scenario: str, item_id: str) -> dict:
+    """Fresh chat context per item."""
     prompt = f"""You are a cybersecurity expert assessing vulnerabilities and threats.
 
 ## Scenario
@@ -534,12 +536,14 @@ def eval_vuln(llm, scenario: str, item_id: str) -> dict:
 Respond in JSON: {{"severity_or_answer": "your answer", "explanation": "brief explanation", "confidence": 0.0-1.0, "wager": 0-100, "reasoning": "why this wager amount"}}"""
 
     resp = llm.prompt(prompt, schema=VulnResponse)
-    return {"id": item_id, "response": resp}
+    return {"id": item_id, **asdict(resp)}
 
 # %%
 # === Sub-task: Single Risk Factor evaluation ===
 
+@kbench.task(store_task=False)
 def eval_risk_factor(llm, company: str, sector: str, year: int, risk: str, item_id: str) -> dict:
+    """Fresh chat context per item."""
     prompt = f"""You are a financial analyst assessing risk factor materiality.
 
 ## Company: {company} — {sector} (Fiscal Year {year})
@@ -556,7 +560,7 @@ Did this risk MATERIALIZE in the 12 months following disclosure?
 Respond in JSON: {{"assessment": "materialized|did_not_materialize", "rationale": "...", "confidence": 0.0-1.0, "wager": 0-100, "reasoning": "..."}}"""
 
     resp = llm.prompt(prompt, schema=RiskFactorResponse)
-    return {"id": item_id, "response": resp}
+    return {"id": item_id, **asdict(resp)}
 
 # %%
 # === Main Benchmark Task ===
@@ -582,16 +586,15 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Cybersecurity: Vulnerability assessments
     print("\n--- Cybersecurity Domain: Vulnerability Assessment ---")
     for item in CYBER_ITEMS:
-        result = eval_vuln(
+        result = eval_vuln.run(
             llm=llm,
             scenario=item["prompt"],
             item_id=item["id"],
         )
-        resp = result["response"]
-        answer = resp.severity_or_answer.lower().strip().replace(" ", "_")
+        answer = result["severity_or_answer"].lower().strip().replace(" ", "_")
         is_correct = answer == item["correct"] or item["correct"] in answer
-        conf = max(0.0, min(1.0, resp.confidence))
-        wager = max(0, min(100, resp.wager))
+        conf = max(0.0, min(1.0, result["confidence"]))
+        wager = max(0, min(100, result["wager"]))
 
         cyber_scores["confidences"].append(conf)
         cyber_scores["accuracies"].append(is_correct)
@@ -607,17 +610,16 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Finance: Risk factors
     print("\n--- Finance Domain: Risk Factor Materiality ---")
     for item in RF_ITEMS:
-        result = eval_risk_factor(
+        result = eval_risk_factor.run(
             llm=llm,
             company=item["company"], sector=item["sector"],
             year=item["year"], risk=item["risk"],
             item_id=item["id"],
         )
-        resp = result["response"]
         expected = "materialized" if item["materialized"] else "did_not_materialize"
-        is_correct = resp.assessment.lower().strip().replace(" ", "_") == expected
-        conf = max(0.0, min(1.0, resp.confidence))
-        wager = max(0, min(100, resp.wager))
+        is_correct = result["assessment"].lower().strip().replace(" ", "_") == expected
+        conf = max(0.0, min(1.0, result["confidence"]))
+        wager = max(0, min(100, result["wager"]))
 
         fin_scores["confidences"].append(conf)
         fin_scores["accuracies"].append(is_correct)
@@ -628,7 +630,7 @@ def calibrated_confidence_benchmark(llm) -> float:
 
         status = "CORRECT" if is_correct else "WRONG"
         print(f"  [{item['id']}] D{item['difficulty']} {item['company']}: "
-              f"{resp.assessment} ({status}) conf={conf:.2f} wager={wager}")
+              f"{result['assessment']} ({status}) conf={conf:.2f} wager={wager}")
 
     # Compute metrics
     overall_ece = compute_ece(all_confidences, all_accuracies)

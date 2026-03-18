@@ -37,7 +37,7 @@ import kaggle_benchmarks as kbench
 import json
 import re
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Optional, List
 
 # %%
@@ -1100,15 +1100,15 @@ DILIGENCE: PBI has no material litigation, clean IP portfolio (480 patents), FDA
 # %%
 # === Scoring Logic ===
 
-def score_response(response: DecoyResponse, vignette: dict) -> dict:
-    """Score a single Diagnostic Decoy response."""
-    assessment_lower = response.final_assessment.lower()
-    contradictions_found = response.contradictory_evidence
+def score_response_dict(result: dict, vignette: dict) -> dict:
+    """Score a single Diagnostic Decoy response (dict from asdict)."""
+    assessment_lower = result["final_assessment"].lower()
+    contradictions_found = result["contradictory_evidence"]
 
     # Check if model identified the correct answer
     keywords_found = sum(
         1 for kw in vignette["correct_answer_keywords"]
-        if kw.lower() in assessment_lower or kw.lower() in response.reasoning.lower()
+        if kw.lower() in assessment_lower or kw.lower() in result["reasoning"].lower()
     )
     keyword_hit_rate = keywords_found / len(vignette["correct_answer_keywords"])
 
@@ -1125,7 +1125,7 @@ def score_response(response: DecoyResponse, vignette: dict) -> dict:
         inh_score = 3
     elif len(contradictions_found) > 0 and not is_correct:
         inh_score = 2
-    elif gave_prepotent and response.confidence < 0.7:
+    elif gave_prepotent and result["confidence"] < 0.7:
         inh_score = 1
     else:
         inh_score = 0 if gave_prepotent else (3 if is_correct else 1)
@@ -1138,7 +1138,7 @@ def score_response(response: DecoyResponse, vignette: dict) -> dict:
         "gave_prepotent": gave_prepotent,
         "inhibition_score": inh_score,
         "evidence_identification_rate": round(evidence_rate, 4),
-        "confidence": response.confidence,
+        "confidence": result["confidence"],
         "n_contradictions_found": len(contradictions_found),
         "keyword_hit_rate": round(keyword_hit_rate, 4),
     }
@@ -1147,8 +1147,9 @@ def score_response(response: DecoyResponse, vignette: dict) -> dict:
 # %%
 # === Main Task: Run one vignette ===
 
+@kbench.task(store_task=False)
 def run_single_decoy(llm, case: str, question: str, vignette_id: str) -> dict:
-    """Evaluate a single Diagnostic Decoy vignette."""
+    """Evaluate a single Diagnostic Decoy vignette. Fresh chat per call."""
     prompt = f"""You are an expert advisor. Read the following case carefully and answer the question.
 
 ## Case
@@ -1172,7 +1173,7 @@ Provide your response in the following JSON format:
 }}"""
 
     response = llm.prompt(prompt, schema=DecoyResponse)
-    return {"vignette_id": vignette_id, "response": response}
+    return {"vignette_id": vignette_id, **asdict(response)}
 
 
 # %%
@@ -1197,15 +1198,14 @@ def diagnostic_decoy_benchmark(llm) -> float:
     all_results = []
 
     for v in VIGNETTES:
-        result = run_single_decoy(
+        result = run_single_decoy.run(
             llm=llm,
             case=v["case"],
             question=v["question"],
             vignette_id=v["id"],
         )
 
-        resp = result["response"]
-        scores = score_response(resp, v)
+        scores = score_response_dict(result, v)
 
         # Core assertion: for incongruent trials, model should NOT give prepotent response
         if v["trial_type"] == "incongruent":

@@ -34,7 +34,7 @@ Novel metric: Perseverative Error Rate (WCST analog for LLMs)
 
 # %%
 import kaggle_benchmarks as kbench
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Optional
 
 # %%
@@ -296,14 +296,46 @@ SCENARIOS = [
 # %%
 # === Scoring Logic ===
 
-def score_turn(response: TurnNResponse, turn_data: dict) -> dict:
-    """Score a single adaptation turn."""
+@kbench.task(store_task=False)
+def run_turn1(llm, context: str, question: str) -> dict:
+    """Fresh chat for Turn 1 initial assessment."""
+    prompt = f"""You are an expert advisor. Read the case and provide your recommendation.
+
+## Case
+{context}
+
+## Question
+{question}
+
+Respond in JSON: {{"assessment": "...", "recommendation": "...", "key_considerations": ["..."], "confidence": 0.0-1.0, "reasoning": "..."}}"""
+    resp = llm.prompt(prompt, schema=Turn1Response)
+    return asdict(resp)
+
+@kbench.task(store_task=False)
+def run_turn_n(llm, new_info: str, context: str, question: str) -> dict:
+    """Fresh chat for adaptation turns."""
+    prompt = f"""## Update — New Information
+
+{new_info}
+
+{context}
+
+## Question
+{question}
+
+Given this new information, provide your UPDATED response in JSON:
+{{"changes_detected": ["..."], "impact_on_prior_plan": ["..."], "elements_retained": ["..."], "elements_abandoned": ["..."], "elements_new": ["..."], "updated_recommendation": "...", "adaptation_rationale": "...", "confidence": 0.0-1.0}}"""
+    resp = llm.prompt(prompt, schema=TurnNResponse)
+    return asdict(resp)
+
+def score_turn_dict(result: dict, turn_data: dict) -> dict:
+    """Score a single adaptation turn (dict from asdict)."""
     expected_adaptations = turn_data["key_adaptations"]
     should_change = turn_data.get("should_change", [])
     should_stay = turn_data.get("should_stay", [])
 
     # Change detection: how many key adaptations were detected?
-    detected = response.changes_detected + response.impact_on_prior_plan
+    detected = result["changes_detected"] + result["impact_on_prior_plan"]
     detected_text = " ".join(detected).lower()
 
     adaptation_hits = sum(
@@ -313,7 +345,7 @@ def score_turn(response: TurnNResponse, turn_data: dict) -> dict:
     detection_rate = adaptation_hits / len(expected_adaptations) if expected_adaptations else 1.0
 
     # Perseveration check: did they abandon what they should?
-    abandoned_text = " ".join(response.elements_abandoned).lower()
+    abandoned_text = " ".join(result["elements_abandoned"]).lower()
     change_hits = sum(
         1 for elem in should_change
         if any(kw in abandoned_text for kw in elem.lower().split()[:2])
@@ -321,7 +353,7 @@ def score_turn(response: TurnNResponse, turn_data: dict) -> dict:
     persev_rate = 1.0 - (change_hits / len(should_change)) if should_change else 0.0
 
     # Gratuitous change check: did they keep what they should?
-    retained_text = " ".join(response.elements_retained).lower()
+    retained_text = " ".join(result["elements_retained"]).lower()
     retain_hits = sum(
         1 for elem in should_stay
         if any(kw in retained_text for kw in elem.lower().split()[:2])
@@ -335,11 +367,11 @@ def score_turn(response: TurnNResponse, turn_data: dict) -> dict:
         "perseverative_error_rate": round(persev_rate, 4),
         "gratuitous_change_rate": round(gratuitous_rate, 4),
         "flexibility_score": round(max(0.0, flexibility), 4),
-        "confidence": response.confidence,
-        "n_changes_detected": len(response.changes_detected),
-        "n_elements_retained": len(response.elements_retained),
-        "n_elements_abandoned": len(response.elements_abandoned),
-        "n_elements_new": len(response.elements_new),
+        "confidence": result["confidence"],
+        "n_changes_detected": len(result["changes_detected"]),
+        "n_elements_retained": len(result["elements_retained"]),
+        "n_elements_abandoned": len(result["elements_abandoned"]),
+        "n_elements_new": len(result["elements_new"]),
     }
 
 
@@ -365,35 +397,22 @@ def mid_course_correction_benchmark(llm) -> float:
         for turn_idx, turn_data in enumerate(scenario["turns"]):
             if turn_idx == 0:
                 # Turn 1: initial assessment
-                prompt = f"""You are an expert advisor. Read the case and provide your recommendation.
-
-## Case
-{turn_data['context']}
-
-## Question
-{turn_data['question']}
-
-Respond in JSON: {{"assessment": "...", "recommendation": "...", "key_considerations": ["..."], "confidence": 0.0-1.0, "reasoning": "..."}}"""
-
-                resp = llm.prompt(prompt, schema=Turn1Response)
-                print(f"  Turn 1: {len(resp.key_considerations)} considerations, conf={resp.confidence:.2f}")
+                result = run_turn1.run(
+                    llm=llm,
+                    context=turn_data['context'],
+                    question=turn_data['question'],
+                )
+                print(f"  Turn 1: {len(result['key_considerations'])} considerations, conf={result['confidence']:.2f}")
 
             else:
                 # Subsequent turns: adaptation required
-                prompt = f"""## Update — New Information
-
-{turn_data['new_info']}
-
-{turn_data['context']}
-
-## Question
-{turn_data['question']}
-
-Given this new information, provide your UPDATED response in JSON:
-{{"changes_detected": ["..."], "impact_on_prior_plan": ["..."], "elements_retained": ["..."], "elements_abandoned": ["..."], "elements_new": ["..."], "updated_recommendation": "...", "adaptation_rationale": "...", "confidence": 0.0-1.0}}"""
-
-                resp = llm.prompt(prompt, schema=TurnNResponse)
-                scores = score_turn(resp, turn_data)
+                result = run_turn_n.run(
+                    llm=llm,
+                    new_info=turn_data['new_info'],
+                    context=turn_data['context'],
+                    question=turn_data['question'],
+                )
+                scores = score_turn_dict(result, turn_data)
                 all_flexibility_scores.append(scores["flexibility_score"])
 
                 # Assertions
@@ -406,7 +425,7 @@ Given this new information, provide your UPDATED response in JSON:
                     expectation=f"[{scenario['id']}:T{turn_idx+1}] Should not perseverate on >80% of elements that should change"
                 )
                 kbench.assertions.assert_true(
-                    len(resp.changes_detected) >= 1,
+                    len(result["changes_detected"]) >= 1,
                     expectation=f"[{scenario['id']}:T{turn_idx+1}] Should detect at least 1 change"
                 )
 

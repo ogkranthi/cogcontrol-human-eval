@@ -17,7 +17,7 @@ The rational strategy is to abstain when P(correct) < 0.167
 
 # %%
 import kaggle_benchmarks as kbench
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Optional
 
 # %%
@@ -292,6 +292,13 @@ A developer says they "added W&B (Weights & Biases) telemetry" but has no ticket
 ]
 
 # %%
+@kbench.task(store_task=False)
+def ask_abstention(llm, prompt: str) -> dict:
+    """Fresh chat context per item to avoid context accumulation."""
+    resp = llm.prompt(prompt, schema=AbstentionResponse)
+    return asdict(resp)
+
+# %%
 @kbench.task(name="mc2_selective_abstention")
 def selective_abstention_benchmark(llm) -> float:
     """
@@ -332,9 +339,9 @@ Only answer when confident. Abstaining is much better than being wrong.
 
 Respond in JSON: {{"decision": "answer|abstain", "answer": "your answer or null", "specialist_referral": "type or null", "missing_information": ["..."], "confidence": 0.0-1.0, "reasoning": "..."}}"""
 
-        resp = llm.prompt(prompt, schema=AbstentionResponse)
+        resp = ask_abstention.run(llm=llm, prompt=prompt)
 
-        if resp.decision.lower() == "abstain":
+        if resp["decision"].lower() == "abstain":
             total_score += ABSTENTION_COST
             n_abstained += 1
             decision_str = "ABSTAIN"
@@ -347,7 +354,7 @@ Respond in JSON: {{"decision": "answer|abstain", "answer": "your answer or null"
                 )
         else:
             # Check answer correctness
-            answer_lower = (resp.answer or "").lower() + " " + resp.reasoning.lower()
+            answer_lower = (resp["answer"] or "").lower() + " " + resp["reasoning"].lower()
             keyword_hits = sum(1 for kw in item["answer_keywords"] if kw.lower() in answer_lower)
             is_correct = keyword_hits >= max(1, len(item["answer_keywords"]) // 3)
 
@@ -370,12 +377,12 @@ Respond in JSON: {{"decision": "answer|abstain", "answer": "your answer or null"
         # For answerable items, model should answer
         if item["answerability"] == "answerable":
             kbench.assertions.assert_true(
-                resp.decision.lower() == "answer",
+                resp["decision"].lower() == "answer",
                 expectation=f"[{item['id']}] Should answer straightforward D{item['difficulty']} question"
             )
 
         print(f"  [{item['id']}] {item['answerability']:12s} D{item['difficulty']} → {decision_str:8s} "
-              f"conf={resp.confidence:.2f} score_delta={CORRECT_REWARD if decision_str == 'CORRECT' else INCORRECT_PENALTY if decision_str == 'WRONG' else ABSTENTION_COST:+.0f}")
+              f"conf={resp['confidence']:.2f} score_delta={CORRECT_REWARD if decision_str == 'CORRECT' else INCORRECT_PENALTY if decision_str == 'WRONG' else ABSTENTION_COST:+.0f}")
 
     # Compute metrics
     n_total = len(ITEMS)
