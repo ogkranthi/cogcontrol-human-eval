@@ -397,21 +397,23 @@ def mid_course_correction_benchmark(llm) -> float:
         for turn_idx, turn_data in enumerate(scenario["turns"]):
             if turn_idx == 0:
                 # Turn 1: initial assessment
-                result = run_turn1.run(
+                run_result = run_turn1.run(
                     llm=llm,
                     context=turn_data['context'],
                     question=turn_data['question'],
                 )
+                result = run_result.result if hasattr(run_result, 'result') else run_result
                 print(f"  Turn 1: {len(result['key_considerations'])} considerations, conf={result['confidence']:.2f}")
 
             else:
                 # Subsequent turns: adaptation required
-                result = run_turn_n.run(
+                run_result = run_turn_n.run(
                     llm=llm,
                     new_info=turn_data['new_info'],
                     context=turn_data['context'],
                     question=turn_data['question'],
                 )
+                result = run_result.result if hasattr(run_result, 'result') else run_result
                 scores = score_turn_dict(result, turn_data)
                 all_flexibility_scores.append(scores["flexibility_score"])
 

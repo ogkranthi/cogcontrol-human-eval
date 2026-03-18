@@ -338,7 +338,8 @@ Only answer when confident. Abstaining is much better than being wrong.
 
 Respond in JSON: {{"decision": "answer|abstain", "answer": "your answer or empty string if abstaining", "specialist_referral": "specialist type or empty string", "missing_information": ["..."], "confidence": 0.0-1.0, "reasoning": "..."}}"""
 
-        resp = ask_abstention.run(llm=llm, prompt=prompt)
+        run_result = ask_abstention.run(llm=llm, prompt=prompt)
+        resp = run_result.result if hasattr(run_result, 'result') else run_result
 
         if resp["decision"].lower() == "abstain":
             total_score += ABSTENTION_COST

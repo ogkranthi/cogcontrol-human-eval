@@ -586,11 +586,12 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Cybersecurity: Vulnerability assessments
     print("\n--- Cybersecurity Domain: Vulnerability Assessment ---")
     for item in CYBER_ITEMS:
-        result = eval_vuln.run(
+        run_result = eval_vuln.run(
             llm=llm,
             scenario=item["prompt"],
             item_id=item["id"],
         )
+        result = run_result.result if hasattr(run_result, 'result') else run_result
         answer = result["severity_or_answer"].lower().strip().replace(" ", "_")
         is_correct = answer == item["correct"] or item["correct"] in answer
         conf = max(0.0, min(1.0, result["confidence"]))
@@ -610,12 +611,13 @@ def calibrated_confidence_benchmark(llm) -> float:
     # Finance: Risk factors
     print("\n--- Finance Domain: Risk Factor Materiality ---")
     for item in RF_ITEMS:
-        result = eval_risk_factor.run(
+        run_result = eval_risk_factor.run(
             llm=llm,
             company=item["company"], sector=item["sector"],
             year=item["year"], risk=item["risk"],
             item_id=item["id"],
         )
+        result = run_result.result if hasattr(run_result, 'result') else run_result
         expected = "materialized" if item["materialized"] else "did_not_materialize"
         is_correct = result["assessment"].lower().strip().replace(" ", "_") == expected
         conf = max(0.0, min(1.0, result["confidence"]))

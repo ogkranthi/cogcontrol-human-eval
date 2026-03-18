@@ -1198,12 +1198,13 @@ def diagnostic_decoy_benchmark(llm) -> float:
     all_results = []
 
     for v in VIGNETTES:
-        result = run_single_decoy.run(
+        run_result = run_single_decoy.run(
             llm=llm,
             case=v["case"],
             question=v["question"],
             vignette_id=v["id"],
         )
+        result = run_result.result if hasattr(run_result, 'result') else run_result
 
         scores = score_response_dict(result, v)
 
