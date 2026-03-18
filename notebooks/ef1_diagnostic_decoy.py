@@ -1181,16 +1181,7 @@ Provide your response in the following JSON format:
 
 @kbench.task(name="ef1_diagnostic_decoy")
 def diagnostic_decoy_benchmark(llm) -> float:
-    """
-    EF-1: Diagnostic Decoy — Stroop Test for LLMs
-
-    Measures inhibitory control via the Interference Effect:
-    IE = accuracy_congruent - accuracy_incongruent
-
-    Lower IE = better inhibitory control.
-
-    Returns the incongruent accuracy (the harder, more meaningful measure).
-    """
+    """Stroop Test for LLMs — measures inhibitory control via Interference Effect. Returns incongruent accuracy."""
     import pandas as pd
 
     congruent_correct = []

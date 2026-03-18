@@ -380,14 +380,7 @@ def score_turn_dict(result: dict, turn_data: dict) -> dict:
 
 @kbench.task(name="ef2_mid_course_correction")
 def mid_course_correction_benchmark(llm) -> float:
-    """
-    EF-2: Mid-Course Correction — WCST for LLMs
-
-    Multi-turn evaluation of cognitive flexibility in high-stakes domains.
-    Measures perseverative errors, gratuitous changes, and change detection.
-
-    Returns: Mean flexibility score across all adaptation turns (0-1).
-    """
+    """WCST for LLMs — measures cognitive flexibility via perseverative errors. Returns mean flexibility (0-1)."""
 
     all_flexibility_scores = []
 

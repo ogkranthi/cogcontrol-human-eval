@@ -300,16 +300,7 @@ def ask_abstention(llm, prompt: str) -> dict:
 # %%
 @kbench.task(name="mc2_selective_abstention")
 def selective_abstention_benchmark(llm) -> float:
-    """
-    MC-2: Selective Abstention Under Stakes
-
-    Tests knowledge boundary detection with asymmetric payoffs.
-    Correct=+10, Wrong=-50, Abstain=-2.
-
-    Optimal: answer when confident, defer when uncertain.
-
-    Returns: Normalized risk-adjusted score (-1 to 1).
-    """
+    """Tests knowledge boundary detection with asymmetric payoffs. Returns normalized score (0-1)."""
 
     CORRECT_REWARD = 10.0
     INCORRECT_PENALTY = -50.0

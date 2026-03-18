@@ -567,15 +567,7 @@ Respond in JSON: {{"assessment": "materialized|did_not_materialize", "rationale"
 
 @kbench.task(name="mc1_calibrated_confidence")
 def calibrated_confidence_benchmark(llm) -> float:
-    """
-    MC-1: Calibrated Confidence Under Stakes
-
-    Measures metacognitive monitoring accuracy using a wagering paradigm.
-    Tests calibration, discrimination, and behavioral confidence across
-    cybersecurity (vulnerability assessment) and finance (risk factor materiality).
-
-    Returns: Composite metacognition score (0-1, higher = better).
-    """
+    """Measures metacognitive calibration via wagering. Returns 1-ECE (0-1)."""
 
     all_confidences = []
     all_accuracies = []
