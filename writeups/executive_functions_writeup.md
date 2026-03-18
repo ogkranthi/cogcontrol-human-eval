@@ -47,7 +47,7 @@ Models respond with structured JSON: `changes_detected`, `elements_retained`, `e
 
 **EF-2 (8 scenarios, 24 turns):** 4 cybersecurity + 4 finance scenarios. Each adaptation turn annotates which plan elements should change, which should stay, and what new elements are expected. Scenarios model realistic escalation patterns (e.g., SQL injection escalating to APT discovery; portfolio rebalancing under regime shifts).
 
-**Provenance:** All items hand-authored by the benchmark creator. No items sourced from existing benchmarks, eliminating contamination risk. Ground truth validated against professional standards (NIST frameworks, CVSS scoring, SEC filing analysis).
+**Provenance:** All items hand-authored. No items sourced from existing benchmarks, eliminating contamination risk. Cybersecurity items reference real-world attack patterns and detection scenarios; finance items reference realistic corporate events and filing structures. Ground truth labels are author-defined with correct answers embedded at item construction time.
 
 ## Technical details
 

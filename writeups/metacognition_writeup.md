@@ -43,7 +43,7 @@ Models respond via structured JSON: `decision` (answer/abstain), `answer`, `spec
 
 ## Dataset
 
-**MC-1 (50 items):** 30 cybersecurity items constructed from real CVE entries (NVD, 2020-2024), CVSS v3.1 severity ratings, and documented attack patterns. 20 finance items constructed from SEC 10-K filings (2019-2023) of public companies including SVB, Pfizer, Tesla, NVIDIA, CrowdStrike, FTX, Credit Suisse, Coinbase, and Meta. Ground truth established from subsequent market outcomes within 12-18 months, verified against Bloomberg and SEC EDGAR.
+**MC-1 (50 items):** 30 cybersecurity items referencing real CVE entries (e.g., CVE-2021-44228 Log4Shell, CVE-2021-41773) with severity aligned to CVSS v3.1 ratings. 20 finance items based on real SEC 10-K risk disclosures from public companies (SVB, Pfizer, Tesla, NVIDIA, CrowdStrike, FTX, Credit Suisse, Coinbase, Meta). Finance ground truth is verifiable from public outcomes (e.g., SVB collapsed March 2023, FTX filed Chapter 11 November 2022).
 
 **MC-2 (28 items):** 10 answerable + 8 ambiguous + 10 specialist items spanning cybersecurity and finance. Answerability tiers determined by the benchmark creator based on professional domain experience, with specialist items requiring knowledge of CMMC compliance, OT/SCADA forensics, cross-border tax law, derivatives pricing, and estate planning — domains where general-purpose models should defer.
 
