@@ -1,0 +1,9 @@
+kaggle-benchmarks
+requests
+pandas
+numpy
+scipy
+scikit-learn
+edgartools
+matplotlib
+seaborn
